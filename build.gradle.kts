@@ -27,6 +27,11 @@ dependencies {
     implementation(ktorLibs.server.auth)
     implementation(ktorLibs.server.auth.jwt)
 
+    // КТ3: документация, обработка ошибок, логирование
+    implementation("io.ktor:ktor-server-swagger:3.6.0")
+    implementation("io.ktor:ktor-server-status-pages:3.6.0")
+    implementation("io.ktor:ktor-server-call-logging:3.6.0")
+
     // PostgreSQL и Exposed
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)

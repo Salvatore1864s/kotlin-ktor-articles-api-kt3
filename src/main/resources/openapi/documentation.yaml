@@ -1,0 +1,221 @@
+
+openapi: 3.0.3
+info:
+  title: Ktor Articles API
+  version: 1.0.0
+  description: API для работы со статьями и авторизацией пользователей
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: Articles
+    description: Работа со статьями
+  - name: Authentication
+    description: Регистрация и вход
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Article:
+      type: object
+      required:
+        - id
+        - title
+        - content
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Первая статья
+        content:
+          type: string
+          example: Содержание статьи
+
+    ArticleRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          example: Новая статья
+        content:
+          type: string
+          example: Текст статьи
+
+    AuthRequest:
+      type: object
+      required:
+        - login
+        - password
+      properties:
+        login:
+          type: string
+          example: student1
+        password:
+          type: string
+          format: password
+          example: password123
+
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Вход выполнен успешно
+        token:
+          type: string
+          nullable: true
+          description: JWT-токен при успешном входе
+
+paths:
+  /articles:
+    get:
+      tags:
+        - Articles
+      summary: Получить список статей
+      parameters:
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - old
+              - new
+          description: Сортировка статей
+      responses:
+        "200":
+          description: Список статей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+
+    post:
+      tags:
+        - Articles
+      summary: Создать статью
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArticleRequest"
+      responses:
+        "201":
+          description: Статья создана
+        "400":
+          description: Некорректные данные
+        "401":
+          description: Требуется авторизация
+
+  /articles/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: ID статьи
+
+    get:
+      tags:
+        - Articles
+      summary: Получить статью по ID
+      responses:
+        "200":
+          description: Статья найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+        "404":
+          description: Статья не найдена
+
+    put:
+      tags:
+        - Articles
+      summary: Обновить статью
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArticleRequest"
+      responses:
+        "200":
+          description: Статья обновлена
+        "401":
+          description: Требуется авторизация
+        "404":
+          description: Статья не найдена
+
+    delete:
+      tags:
+        - Articles
+      summary: Удалить статью
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Статья удалена
+        "401":
+          description: Требуется авторизация
+        "404":
+          description: Статья не найдена
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Зарегистрировать пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+      responses:
+        "201":
+          description: Регистрация успешна
+        "400":
+          description: Некорректные данные
+        "409":
+          description: Пользователь уже существует
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Войти и получить JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+      responses:
+        "200":
+          description: Вход выполнен успешно
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Неверный логин или пароль

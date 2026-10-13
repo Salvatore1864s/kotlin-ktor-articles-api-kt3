@@ -7,6 +7,8 @@ import com.example.data.UsersTable
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.swagger.*
+import io.ktor.server.routing.*
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -19,7 +21,16 @@ fun main() {
 
     embeddedServer(Netty, port = 8080) {
         configureSerialization()
+        configureMonitoring()
         configureSecurity()
+
+        routing {
+            swaggerUI(
+                path = "swagger",
+                swaggerFile = "openapi/documentation.yaml"
+            )
+        }
+
         configureRouting()
     }.start(wait = true)
 }
